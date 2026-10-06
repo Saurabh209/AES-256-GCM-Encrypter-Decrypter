@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Encryption/Decryption & Editing Tool</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #f1f5f9;
+      --card-bg: #ffffff;
+      --border-subtle: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+
+      /* Accents */
+      --indigo-primary: #4f46e5;
+      --indigo-hover: #4338ca;
+      --sky-primary: #0284c7;
+      --sky-hover: #0369a1;
+      --emerald-primary: #059669;
+      --slate-dark: #0f172a;
+      --slate-hover: #1e293b;
+
+      /* Status Badges */
+      --success-bg: #ecfdf5;
+      --success-border: #a7f3d0;
+      --success-text: #047857;
+      --error-bg: #fff1f2;
+      --error-border: #fecdd3;
+      --error-text: #be123c;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-main);
+      background-image: radial-gradient(#cbd5e1 0.75px, transparent 0.75px);
+      background-size: 16px 16px;
+      background-attachment: fixed;
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1.25rem;
+    }
+
+    .container {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    /* Top Bar Header */
+    .top-bar {
+      background: var(--card-bg);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 0.65rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.03), 0 1px 2px -1px rgba(0, 0, 0, 0.03);
+      gap: 1.5rem;
+      position: sticky;
+      top: 0px;
+      z-index: 999;
+    }
+
+    .top-bar-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      white-space: nowrap;
+      letter-spacing: -0.01em;
+    }
+
+    .top-bar-title .icon-badge {
+      background: #e0e7ff;
+      color: var(--indigo-primary);
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+    }
+
+    .key-input-container {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex: 1;
+      max-width: 540px;
+    }
+
+    .key-input-container label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    input.input-compact {
+      background: #f8fafc;
+      border: 1px solid var(--border-strong);
+      border-radius: 8px;
+      padding: 0.35rem 0.75rem;
+      color: var(--text-main);
+      font-family: 'Fira Code', monospace;
+      font-size: 0.8rem;
+      outline: none;
+      width: 100%;
+      height: 34px;
+      transition: all 0.15s ease-in-out;
+    }
+
+    input.input-compact:focus {
+      background: #ffffff;
+      border-color: var(--indigo-primary);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+    }
+
+    /* Cards - Clean uniform 4-sided border */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 1rem 1.15rem;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.6rem;
+    }
+
+    .card-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Distinct Badge Pills */
+    .badge-pill {
+      padding: 0.15rem 0.5rem;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .badge-indigo {
+      background: #e0e7ff;
+      color: #3730a3;
+    }
+
+    .badge-emerald {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .badge-sky {
+      background: #e0f2fe;
+      color: #075985;
+    }
+
+    .info-tag {
+      background: #f1f5f9;
+      color: #334155;
+      padding: 0.15rem 0.55rem;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: none;
+      letter-spacing: normal;
+      border: 1px solid var(--border-subtle);
+    }
+
+    /* Textareas Code Editing Windows */
+    textarea {
+      background: #fcfcfd;
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 0.75rem;
+      color: #1e293b;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.82rem;
+      line-height: 1.5;
+      outline: none;
+      width: 100%;
+      tab-size: 2;
+      white-space: pre;
+      overflow-x: auto;
+      transition: all 0.15s ease-in-out;
+    }
+
+    textarea:focus {
+      background: #ffffff;
+      border-color: var(--indigo-primary);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+    }
+
+    textarea.textarea-code-left,
+    textarea.textarea-code-right {
+      min-height: 360px;
+      height: 380px;
+      resize: vertical;
+    }
+
+    textarea.textarea-bottom-edit {
+      min-height: 360px;
+      height: 380px;
+      resize: vertical;
+    }
+
+    /* Grid Layout */
+    .grid-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    @media (max-width: 900px) {
+      .grid-2col {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card-footer {
+      margin-top: 0.65rem;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 0.75rem;
+      min-height: 34px;
+    }
+
+    /* Professional Buttons */
+    button {
+      border: none;
+      border-radius: 8px;
+      padding: 0.4rem 0.95rem;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 600;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.15s ease-in-out;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      height: 35px;
+      flex-shrink: 0;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    /* Button Colors */
+    button.btn-indigo {
+      background: var(--indigo-primary);
+      color: #ffffff;
+    }
+
+    button.btn-indigo:hover {
+      background: var(--indigo-hover);
+      box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+    }
+
+    button.btn-sky {
+      background: var(--sky-primary);
+      color: #ffffff;
+    }
+
+    button.btn-sky:hover {
+      background: var(--sky-hover);
+      box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.2);
+    }
+
+    button.btn-slate {
+      background: var(--slate-dark);
+      color: #ffffff;
+    }
+
+    button.btn-slate:hover {
+      background: var(--slate-hover);
+      box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.2);
+    }
+
+    /* Zero Layout-Shift Inline Badges */
+    .inline-status {
+      font-size: 0.78rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.4rem 0.95rem;
+      border-radius: 6px;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.15s ease-in-out, visibility 0.15s ease-in-out;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+
+    .inline-status.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .inline-status.error {
+      background: var(--error-bg);
+      border: 1px solid var(--error-border);
+      color: var(--error-text);
+    }
+
+    .inline-status.success {
+      background: var(--success-bg);
+      border: 1px solid var(--success-border);
+      color: var(--success-text);
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <!-- Top Header Bar with Compact Key Input & Clear Button -->
+    <div class="top-bar">
+      <div class="top-bar-title">
+         DB Encrypted Data Editor
+      </div>
+      <div class="key-input-container">
+        <label for="masterKey">Encryption Key:</label>
+        <input type="password" id="masterKey" class="input-compact" placeholder="Paste ENCRYPTION_KEY string here..."
+          autocomplete="off">
+        <button onclick="handleClearAll()" class="btn-slate" style="height: 34px; padding: 0.35rem 0.8rem; font-size: 0.78rem;">Clear Fields</button>
+      </div>
+    </div>
+
+    <!-- Top Row: Code Compare Side-by-Side (Input vs Output) -->
+    <div class="grid-2col">
+
+      <!-- LEFT BOX: Input Encrypted Document -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="badge-pill badge-indigo">1</span> Pasted Encrypted Document (From DB)
+          </div>
+        </div>
+        <textarea id="encryptedInput" class="textarea-code-left"
+          placeholder='Paste single encrypted object OR complete MongoDB document here, e.g.:&#10;{&#10;  patientName: "John Doe",&#10;  assessment: { ciphertext: "...", iv: "...", authTag: "..." }&#10;}'></textarea>
+        <div class="card-footer">
+          <button onclick="handleDecrypt()" class="btn-indigo">Decrypt Document</button>
+          <span id="statusBoxLeft" class="inline-status"></span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <span class="badge-pill badge-sky">2</span> Decrypted Readable Document (Edit Plain Values Here)
+          </div>
+          <span id="docModeTag" class="info-tag" style="display: none;">Mode: Ready</span>
+        </div>
+        <textarea id="plainTextVal" class="textarea-bottom-edit"
+          placeholder="Decrypted document fields will appear here in plain text. "></textarea>
+        <div class="card-footer">
+          <button onclick="handleEncrypt()" class="btn-sky">Edit & Re-Encrypt </button>
+          <span id="statusBoxBottom" class="inline-status"></span>
+        </div>
+      </div>
+
+
+    </div>
+
+    <!-- Bottom Row: Full-width Decrypted Readable Editor -->
+
+    <!-- RIGHT BOX: Output Re-Encrypted Document -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <span class="badge-pill badge-emerald">3</span> Re-Encrypted Output Document (Ready for DB)
+        </div>
+      </div>
+      <textarea id="encryptedOutput" class="textarea-code-right" readonly
+        placeholder="Complete document with re-encrypted fields will appear here..."></textarea>
+      <div class="card-footer">
+        <button onclick="copyResult()" class="btn-slate">Copy Output to Clipboard</button>
+        <span id="statusBoxRight" class="inline-status"></span>
+      </div>
+    </div>
+
+
+  </div>
+
+  <script>
+    let globalEncryptedPaths = new Set();
+    let isFullDocumentMode = false;
+
+    // Auto-save and auto-restore Encryption Key using sessionStorage
+    window.addEventListener("DOMContentLoaded", () => {
+      const keyInput = document.getElementById("masterKey");
+      const savedKey = sessionStorage.getItem("hms_master_key");
+      if (savedKey) {
+        keyInput.value = savedKey;
+      }
+      keyInput.addEventListener("input", (e) => {
+        sessionStorage.setItem("hms_master_key", e.target.value.trim());
+      });
+    });
+
+    // Clear all input/output fields except the Encryption Key
+    function handleClearAll() {
+      document.getElementById("encryptedInput").value = "";
+      document.getElementById("plainTextVal").value = "";
+      document.getElementById("encryptedOutput").value = "";
+
+      const tag = document.getElementById("docModeTag");
+      if (tag) tag.style.display = "none";
+
+      globalEncryptedPaths = new Set();
+      isFullDocumentMode = false;
+
+      ["statusBoxLeft", "statusBoxBottom", "statusBoxRight"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.className = "inline-status";
+          el.innerText = "";
+        }
+      });
+
+      showStatus("All document fields cleared.", "success", "statusBoxLeft");
+    }
+    window.handleClearAll = handleClearAll;
+
+    // Helper: Show status message inline next to the button without shifting layout
+    function showStatus(message, type, targetId = "statusBoxLeft") {
+      // Clear all status badges first
+      ["statusBoxLeft", "statusBoxBottom", "statusBoxRight"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.className = "inline-status";
+          el.innerText = "";
+        }
+      });
+
+      const box = document.getElementById(targetId);
+      if (box) {
+        box.innerText = message;
+        box.className = "inline-status visible " + type;
+      }
+    }
+
+    // Robust parser for JSON, JS Object literals, and BSON types (ObjectId, ISODate, NumberInt, etc.)
+    function parsePastedInput(str) {
+      str = str.trim();
+      if (!str) throw new Error("Please paste data into Step 1 first.");
+
+      const ObjectId = (id) => id;
+      const ISODate = (d) => d;
+      const NumberInt = (n) => Number(n);
+      const NumberLong = (n) => Number(n);
+      const Decimal128 = (n) => Number(n);
+
+      try {
+        return JSON.parse(str);
+      } catch (e) {
+        try {
+          const fn = new Function('ObjectId', 'ISODate', 'NumberInt', 'NumberLong', 'Decimal128', `return (${str});`);
+          return fn(ObjectId, ISODate, NumberInt, NumberLong, Decimal128);
+        } catch (err2) {
+          try {
+            let cleaned = str
+              .replace(/ObjectId\((['"][^'"]+['"])\)/g, '$1')
+              .replace(/ISODate\((['"][^'"]+['"])\)/g, '$1')
+              .replace(/NumberInt\((['"]?\d+['"]?)\)/g, '$1')
+              .replace(/NumberLong\((['"]?\d+['"]?)\)/g, '$1')
+              .replace(/Decimal128\((['"]?\d+['"]?)\)/g, '$1');
+
+            const fn2 = new Function(`return (${cleaned});`);
+            return fn2();
+          } catch (err3) {
+            const ciphertextMatch = str.match(/ciphertext\s*:\s*['"]?([a-fA-F0-9]+)['"]?/);
+            const ivMatch = str.match(/iv\s*:\s*['"]?([a-fA-F0-9]+)['"]?/);
+            const authTagMatch = str.match(/authTag\s*:\s*['"]?([a-fA-F0-9]+)['"]?/);
+
+            if (ciphertextMatch && ivMatch && authTagMatch) {
+              return {
+                ciphertext: ciphertextMatch[1],
+                iv: ivMatch[1],
+                authTag: authTagMatch[1]
+              };
+            }
+          }
+        }
+      }
+      throw new Error("Invalid MongoDB output pasted. Could not parse fields.");
+    }
+
+    function hexToBytes(hex) {
+      hex = hex.trim();
+      const bytes = new Uint8Array(hex.length / 2);
+      for (let i = 0; i < hex.length; i += 2) {
+        bytes[i / 2] = parseInt(hex.substring(i, i + 2), 16);
+      }
+      return bytes;
+    }
+
+    function bytesToHex(bytes) {
+      return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    async function getCryptoKey(rawKeyStr) {
+      if (!rawKeyStr) throw new Error("Please enter your Encryption Key in the top header.");
+      const encoder = new TextEncoder();
+      let keyBytes = encoder.encode(rawKeyStr);
+
+      const paddedKey = new Uint8Array(32);
+      paddedKey.set(keyBytes.subarray(0, 32));
+
+      return await window.crypto.subtle.importKey(
+        "raw",
+        paddedKey,
+        { name: "AES-GCM" },
+        false,
+        ["encrypt", "decrypt"]
+      );
+    }
+
+    async function decryptSingleField(encryptedObj, cryptoKey) {
+      const ciphertextBytes = hexToBytes(encryptedObj.ciphertext);
+      const authTagBytes = hexToBytes(encryptedObj.authTag);
+      const ivBytes = hexToBytes(encryptedObj.iv);
+
+      const combinedBytes = new Uint8Array(ciphertextBytes.length + authTagBytes.length);
+      combinedBytes.set(ciphertextBytes, 0);
+      combinedBytes.set(authTagBytes, ciphertextBytes.length);
+
+      const decryptedBuffer = await window.crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: ivBytes, tagLength: 128 },
+        cryptoKey,
+        combinedBytes
+      );
+
+      const decryptedText = new TextDecoder().decode(decryptedBuffer);
+
+      try {
+        const parsed = JSON.parse(decryptedText);
+        if (parsed && typeof parsed === "object" && "__val" in parsed) {
+          return parsed.__val;
+        }
+        return parsed;
+      } catch {
+        return decryptedText;
+      }
+    }
+
+    async function encryptSingleField(val, cryptoKey) {
+      let dataType = typeof val;
+      let valToStore = val;
+
+      if (val instanceof Date) {
+        dataType = "date";
+        valToStore = val.toISOString();
+      }
+
+      const payload = JSON.stringify({ __val: valToStore, __t: dataType });
+      const ivBytes = window.crypto.getRandomValues(new Uint8Array(12));
+      const textBytes = new TextEncoder().encode(payload);
+
+      const encryptedBuffer = await window.crypto.subtle.encrypt(
+        { name: "AES-GCM", iv: ivBytes, tagLength: 128 },
+        cryptoKey,
+        textBytes
+      );
+
+      const encryptedBytes = new Uint8Array(encryptedBuffer);
+      const ciphertextBytes = encryptedBytes.subarray(0, encryptedBytes.length - 16);
+      const authTagBytes = encryptedBytes.subarray(encryptedBytes.length - 16);
+
+      return {
+        ciphertext: bytesToHex(ciphertextBytes),
+        iv: bytesToHex(ivBytes),
+        authTag: bytesToHex(authTagBytes)
+      };
+    }
+
+    async function decryptObjectTree(node, cryptoKey, encryptedPaths, currentPath = "") {
+      if (node === null || node === undefined) return node;
+
+      if (
+        typeof node === "object" &&
+        !Array.isArray(node) &&
+        typeof node.ciphertext === "string" &&
+        typeof node.iv === "string" &&
+        typeof node.authTag === "string"
+      ) {
+        encryptedPaths.add(currentPath || "__root__");
+        try {
+          return await decryptSingleField(node, cryptoKey);
+        } catch (e) {
+          console.warn("Failed decrypting field at", currentPath, e);
+          return node;
+        }
+      }
+
+      if (Array.isArray(node)) {
+        const resArr = [];
+        for (let i = 0; i < node.length; i++) {
+          const path = currentPath ? `${currentPath}[${i}]` : `[${i}]`;
+          resArr.push(await decryptObjectTree(node[i], cryptoKey, encryptedPaths, path));
+        }
+        return resArr;
+      }
+
+      if (typeof node === "object") {
+        const resObj = {};
+        for (const key of Object.keys(node)) {
+          const path = currentPath ? `${currentPath}.${key}` : key;
+          resObj[key] = await decryptObjectTree(node[key], cryptoKey, encryptedPaths, path);
+        }
+        return resObj;
+      }
+
+      return node;
+    }
+
+    async function reEncryptObjectTree(node, cryptoKey, encryptedPaths, currentPath = "") {
+      if (node === null || node === undefined) return node;
+
+      const thisPath = currentPath || "__root__";
+
+      if (encryptedPaths.has(thisPath)) {
+        return await encryptSingleField(node, cryptoKey);
+      }
+
+      if (Array.isArray(node)) {
+        const resArr = [];
+        for (let i = 0; i < node.length; i++) {
+          const path = currentPath ? `${currentPath}[${i}]` : `[${i}]`;
+          resArr.push(await reEncryptObjectTree(node[i], cryptoKey, encryptedPaths, path));
+        }
+        return resArr;
+      }
+
+      if (typeof node === "object") {
+        const resObj = {};
+        for (const key of Object.keys(node)) {
+          const path = currentPath ? `${currentPath}.${key}` : key;
+          resObj[key] = await reEncryptObjectTree(node[key], cryptoKey, encryptedPaths, path);
+        }
+        return resObj;
+      }
+
+      return node;
+    }
+
+    async function handleDecrypt() {
+      try {
+        const keyStr = document.getElementById("masterKey").value.trim();
+        const rawInput = document.getElementById("encryptedInput").value;
+
+        const parsedData = parsePastedInput(rawInput);
+        const cryptoKey = await getCryptoKey(keyStr);
+
+        globalEncryptedPaths = new Set();
+        const decryptedResult = await decryptObjectTree(parsedData, cryptoKey, globalEncryptedPaths);
+
+        const count = globalEncryptedPaths.size;
+
+        if (count === 0) {
+          showStatus(" No encrypted fields found in data.", "error", "statusBoxLeft");
+          return;
+        }
+
+        isFullDocumentMode = !(globalEncryptedPaths.has("__root__") && count === 1);
+
+        const tag = document.getElementById("docModeTag");
+        tag.style.display = "inline-block";
+        tag.innerText = isFullDocumentMode
+          ? `${count} fields decrypted`
+          : `Single Field Decrypted`;
+
+        if (typeof decryptedResult === "object") {
+          document.getElementById("plainTextVal").value = JSON.stringify(decryptedResult, null, 2);
+        } else {
+          document.getElementById("plainTextVal").value = decryptedResult;
+        }
+
+        showStatus(` Decrypted ${count} field(s)!`, "success", "statusBoxLeft");
+      } catch (err) {
+        showStatus(" Decryption Error: " + err.message, "error", "statusBoxLeft");
+      }
+    }
+
+    async function handleEncrypt() {
+      try {
+        const keyStr = document.getElementById("masterKey").value.trim();
+        const rawVal = document.getElementById("plainTextVal").value;
+
+        if (rawVal === "") throw new Error("Please enter or decrypt data in Section 2 first.");
+
+        if (globalEncryptedPaths.size === 0) {
+          globalEncryptedPaths.add("__root__");
+        }
+
+        const cryptoKey = await getCryptoKey(keyStr);
+
+        let parsedVal = rawVal;
+        try {
+          parsedVal = JSON.parse(rawVal);
+        } catch {
+          // Plain string
+        }
+
+        const reEncryptedResult = await reEncryptObjectTree(parsedVal, cryptoKey, globalEncryptedPaths);
+
+        if (typeof reEncryptedResult === "object") {
+          document.getElementById("encryptedOutput").value = JSON.stringify(reEncryptedResult, null, 2);
+        } else {
+          document.getElementById("encryptedOutput").value = reEncryptedResult;
+        }
+
+        showStatus(` Re-encrypted ${globalEncryptedPaths.size} field(s)! Right box updated.`, "success", "statusBoxBottom");
+      } catch (err) {
+        showStatus(" Encryption Error: " + err.message, "error", "statusBoxBottom");
+      }
+    }
+
+    function copyResult() {
+      const outputText = document.getElementById("encryptedOutput").value;
+      if (!outputText) return;
+      navigator.clipboard.writeText(outputText);
+      showStatus(" Copied to clipboard!", "success", "statusBoxRight");
+    }
+  </script>
+</body>
+
+</html>
